@@ -1,8 +1,6 @@
 services:
   restaurant-web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: verventech/restaurant-app:v2
     container_name: restaurant-web
     ports:
       - "${HOST_PORT:-8081}:80"
@@ -39,6 +37,14 @@ services:
       timeout: 5s
       retries: 5
     restart: always
+  adminer:
+    image: adminer:latest
+    container_name: restaurant-adminer
+    ports:
+      - "8082:8080"
+    networks:
+      - restaurant-network
+    restart: unless-stopped
 
 volumes:
   db-data:
