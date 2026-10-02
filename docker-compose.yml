@@ -1,6 +1,6 @@
 services:
   restaurant-web:
-    image: verventech/restaurant-app:v2
+    image: verventech/restaurant-app:v3
     container_name: restaurant-web
     ports:
       - "${HOST_PORT:-8081}:80"
