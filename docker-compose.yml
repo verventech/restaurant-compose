@@ -1,8 +1,6 @@
 services:
   restaurant-web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: verventech/restaurant-app:v2
     container_name: restaurant-web
     ports:
       - "${HOST_PORT:-8081}:80"
