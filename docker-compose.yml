@@ -1,6 +1,6 @@
 services:
   restaurant-web:
-    image: verventech/restaurant-app:v3
+    image: verventech/restaurant-app:v${TAG}
     container_name: restaurant-web
     ports:
       - "${HOST_PORT:-8081}:80"
@@ -10,8 +10,6 @@ services:
       - PGUSER=${PGUSER}
       - PGPASSWORD=${PGPASSWORD}
       - PGPORT=${PGPORT:-5432}
-    volumes:
-      - ./src:/var/www/html
     networks:
       - restaurant-network
     depends_on:
