@@ -43,11 +43,14 @@ EOF
         stage('Deploy to Staging') {
             steps {
                 sshagent([SSH_CREDS_ID]) {
-                    // Added -r flag for recursive copy of db/ directory
+                    // 1. Remove remote db directory to ensure clean folder creation
+                    sh "ssh -o StrictHostKeyChecking=no ${VM_USER}@${STAGING_IP} 'rm -rf ~/db'"
+                    
+                    // 2. Transfer fresh compose, .env, and db/ directory
                     sh "scp -r -o StrictHostKeyChecking=no docker-compose.yml .env db ${VM_USER}@${STAGING_IP}:~/"
+                    
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VM_USER}@${STAGING_IP} '
-                            # Stop and remove existing conflicting containers if present
                             docker rm -f restaurant-db restaurant-web restaurant-app 2>/dev/null || true
                             export TAG=${TAG}
                             export DOCKER_USER=${DOCKER_USER}
