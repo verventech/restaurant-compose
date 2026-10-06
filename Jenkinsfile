@@ -27,10 +27,9 @@ pipeline {
 
         stage('Create Environment File') {
             steps {
-                withCredentials([string(credentialsId: 'restaurant-app-PGPASS', variable: 'DB_PASS')])
-                {
-                sh '''
-                    cat << 'EOF' > .env
+                withCredentials([string(credentialsId: 'restaurant-app-PGPASS', variable: 'DB_PASS')]) {
+                    sh """
+                        cat << EOF > .env
 PGHOST=restaurant-db
 PGDATABASE=restaurant_db
 PGUSER=postgres
@@ -38,7 +37,7 @@ PGPASSWORD=${DB_PASS}
 PGPORT=5432
 HOST_PORT=8081
 EOF
-                '''
+                    """
                 }
             }
         }
@@ -55,6 +54,8 @@ EOF
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VM_USER}@${STAGING_IP} '
                             docker rm -f restaurant-db restaurant-web restaurant-app 2>/dev/null || true
+                            docker volume rm verjenkins_db-data 2>/dev/null || true
+                            
                             export TAG=${TAG}
                             export DOCKER_USER=${DOCKER_USER}
                             docker compose pull
@@ -67,7 +68,6 @@ EOF
 
         stage('Approval Gate') {
             steps {
-                // Corrected port from 8080 to match HOST_PORT 8081
                 input message: "Verify Staging environment at http://${STAGING_IP}:8081. Promote to Production?", ok: "Deploy!"
             }
         }
@@ -75,12 +75,12 @@ EOF
         stage('Deploy to Production') {
             steps {
                 sshagent([SSH_CREDS_ID]) {
-                    // Added -r flag for recursive copy of db/ directory
+                    sh "ssh -o StrictHostKeyChecking=no ${VM_USER}@${PROD_IP} 'rm -rf ~/db'"
                     sh "scp -r -o StrictHostKeyChecking=no docker-compose.yml .env db ${VM_USER}@${PROD_IP}:~/"
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VM_USER}@${PROD_IP} '
-                            # Stop and remove existing conflicting containers if present
                             docker rm -f restaurant-db restaurant-web restaurant-app 2>/dev/null || true
+                            
                             export TAG=${TAG}
                             export DOCKER_USER=${DOCKER_USER}
                             docker compose pull
