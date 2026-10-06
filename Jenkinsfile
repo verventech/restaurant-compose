@@ -27,7 +27,7 @@ pipeline {
 
         stage('Create Environment File') {
             steps {
-                withCredentials([string(credentialsId: 'restaurant-app-PGPASS', variable: 'DB_PASS')]) {
+                withCredentials([string(credentialsId: 'restaurant-app-PGPASS', variable: 'DB_PASS')])
                 sh '''
                     cat << 'EOF' > .env
 PGHOST=restaurant-db
