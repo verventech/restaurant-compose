@@ -25,15 +25,31 @@ pipeline {
             }
         }
 
+        stage('Create Environment File') {
+            steps {
+                sh '''
+                    cat << 'EOF' > .env
+PGHOST=restaurant-db
+PGDATABASE=restaurant_db
+PGUSER=postgres
+PGPASSWORD=mysecretpassword
+PGPORT=5432
+HOST_PORT=8081
+EOF
+                '''
+            }
+        }
+
         stage('Deploy to Staging') {
             steps {
                 sshagent([SSH_CREDS_ID]) {
-                    sh "scp -o StrictHostKeyChecking=no docker-compose.yml .env db ${VM_USER}@${STAGING_IP}:~/"
+                    // Added -r flag for recursive copy of db/ directory
+                    sh "scp -r -o StrictHostKeyChecking=no docker-compose.yml .env db ${VM_USER}@${STAGING_IP}:~/"
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VM_USER}@${STAGING_IP} '
-                           # Stop and remove existing conflicting containers if present
+                            # Stop and remove existing conflicting containers if present
                             docker rm -f restaurant-db restaurant-web restaurant-app 2>/dev/null || true
-                           export TAG=${TAG}
+                            export TAG=${TAG}
                             export DOCKER_USER=${DOCKER_USER}
                             docker compose pull
                             docker compose up -d --remove-orphans
@@ -45,14 +61,16 @@ pipeline {
 
         stage('Approval Gate') {
             steps {
-                input message: "Verify Staging environment at http://${STAGING_IP}:8080. Promote to Production?", ok: "Deploy!"
+                // Corrected port from 8080 to match HOST_PORT 8081
+                input message: "Verify Staging environment at http://${STAGING_IP}:8081. Promote to Production?", ok: "Deploy!"
             }
         }
 
         stage('Deploy to Production') {
             steps {
                 sshagent([SSH_CREDS_ID]) {
-                    sh "scp -o StrictHostKeyChecking=no docker-compose.yml .env db ${VM_USER}@${PROD_IP}:~/"
+                    // Added -r flag for recursive copy of db/ directory
+                    sh "scp -r -o StrictHostKeyChecking=no docker-compose.yml .env db ${VM_USER}@${PROD_IP}:~/"
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VM_USER}@${PROD_IP} '
                             # Stop and remove existing conflicting containers if present
