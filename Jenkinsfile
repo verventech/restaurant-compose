@@ -31,7 +31,9 @@ pipeline {
                     sh "scp -o StrictHostKeyChecking=no docker-compose.yml ${VM_USER}@${STAGING_IP}:~/docker-compose.yml"
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VM_USER}@${STAGING_IP} '
-                            export TAG=${TAG}
+                           # Stop and remove existing conflicting containers if present
+                            docker rm -f restaurant-db restaurant-web restaurant-app 2>/dev/null || true
+                           export TAG=${TAG}
                             export DOCKER_USER=${DOCKER_USER}
                             docker compose pull
                             docker compose up -d --remove-orphans
@@ -53,6 +55,8 @@ pipeline {
                     sh "scp -o StrictHostKeyChecking=no docker-compose.yml ${VM_USER}@${PROD_IP}:~/docker-compose.yml"
                     sh """
                         ssh -o StrictHostKeyChecking=no ${VM_USER}@${PROD_IP} '
+                            # Stop and remove existing conflicting containers if present
+                            docker rm -f restaurant-db restaurant-web restaurant-app 2>/dev/null || true
                             export TAG=${TAG}
                             export DOCKER_USER=${DOCKER_USER}
                             docker compose pull
