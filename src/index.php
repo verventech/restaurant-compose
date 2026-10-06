@@ -154,7 +154,7 @@ try {
 <body>
 
     <header>
-        <h1>Kashmir Gourmet Bistro</h1>
+        <h1>Srinagar Gourmet Bistro</h1>
         <p>Fresh Ingredients • Authentic Flavors • Culinary Excellence</p>
     </header>
 
