@@ -1,7 +1,6 @@
 services:
   restaurant-web:
     image: verventech/restaurant-app:v${TAG}
-    container_name: restaurant-web
     ports:
       - "${HOST_PORT:-8081}:80"
     environment:
@@ -19,7 +18,6 @@ services:
 
   restaurant-db:
     image: postgres:15-alpine
-    container_name: restaurant-db
     environment:
       POSTGRES_DB: ${PGDATABASE}
       POSTGRES_USER: ${PGUSER}
